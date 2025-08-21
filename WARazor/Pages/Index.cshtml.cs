@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 using WARazor.Models;
 
 
@@ -11,7 +15,7 @@ public class IndexModel : PageModel
     public List<Tarea> Tareas { get; set; }
     public int PaginaActual { get; set; }
     public int TotalPaginas { get; set; }
-    public int TamanoPagina { get; set; } = 5;
+    public int TamanoPagina { get; set; } = 8;
     private readonly ILogger<IndexModel> _logger;
 
     public IndexModel(ILogger<IndexModel> logger)
@@ -28,9 +32,11 @@ public class IndexModel : PageModel
         var jsonContent = System.IO.File.ReadAllText(jsonFilePath);
         var todasLasTareas = JsonSerializer.Deserialize<List<Tarea>>(jsonContent);
 
+        var tareasFiltradas = todasLasTareas.Where(t => t.estado == "Pendiente" || t.estado == "En curso").ToList();
+
         // Lógica de paginación
         PaginaActual = pagina < 1 ? 1 : pagina;
-        TotalPaginas = (int)Math.Ceiling(todasLasTareas.Count / (double)TamanoPagina);
-        Tareas = todasLasTareas.Skip((PaginaActual - 1) * TamanoPagina).Take(TamanoPagina).ToList();
+        TotalPaginas = (int)Math.Ceiling(tareasFiltradas.Count / (double)TamanoPagina);
+        Tareas = tareasFiltradas.Skip((PaginaActual - 1) * TamanoPagina).Take(TamanoPagina).ToList();
     }
 }
